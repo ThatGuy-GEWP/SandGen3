@@ -2,7 +2,7 @@
 
 
 ### What is this?
-As the name says, this is not the [first sandgen](https://github.com/timmyred456/Sandgen-Sharp)
+As the name says, this is not the first, or last sandgen.
 
 Sandgen is a project a couple of years in the making, i have made many mistakes and will make many more!
 the plan currently is for this to be the base of a flexible game engine,
