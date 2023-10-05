@@ -9,7 +9,7 @@ namespace SandGen3Again.Elements
 
         public override Color Color { get; set; } = Color.Yellow;
 
-        public override float weight { get; set; } = 1.2f;
+        public override float weight { get; set; } = 1.85f;
 
         static ColorPalette colors = new ColorPalette(0xFEEF5AFF, 0xDCC243FF, 0xCBAB38FF);
 

@@ -22,6 +22,18 @@ namespace SFML_Game_Engine
             return (value - fromSource) / (toSource - fromSource) * (toTarget - fromTarget) + fromTarget;
         }
 
+        public static float Next()
+        {
+            Random inst = _local;
+            if (inst == null)
+            {
+                int seed;
+                lock (_global) seed = _global.Next();
+                _local = inst = new Random(seed);
+            }
+            return inst.NextSingle();
+        }
+
         public static int Next(int low, int high)
         {
             Random inst = _local;

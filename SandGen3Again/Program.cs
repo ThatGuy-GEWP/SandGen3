@@ -16,16 +16,21 @@ namespace SandGen3Again
 
             Scene testScene = new Scene("Testing Scene", App, "Res\\");
 
-            World testWorld = new World(8, 4);
+            World testWorld = new World(8, 4); // how large the world is in chunks.
+            testWorld.scalingFactor = 4f; // scales the chunk when rendering it.
 
             GameObject WorldHolder = testScene.Instantiate("World");
             WorldHolder.AddComponent(testWorld);
 
+            // Just used to outline where the mouse will place
             GameObject mouseBox = testScene.Instantiate("MouseBox");
-            RenderRect rr = new RenderRect(new Vector2(4, 4));
-            rr.outlineThickness = -1f;
-            rr.fillColor = Color.Transparent;
-            mouseBox.AddComponent(rr).origin = new Vector2(0,0);
+            RenderRect rRect = new RenderRect(new Vector2(testWorld.scalingFactor, testWorld.scalingFactor));
+
+            rRect.outlineThickness = -1f;
+            rRect.fillColor = Color.Transparent;
+            rRect.origin = new Vector2(0, 0);
+
+            mouseBox.AddComponent(rRect);
 
             while (true)
             {
@@ -33,20 +38,21 @@ namespace SandGen3Again
                 App.Clear(new Color(5, 5, 15));
 
                 Vector2 mousePos = (Vector2)Mouse.GetPosition(App);
-                mousePos = Vector2.Floor(mousePos / 4);
-                mouseBox.position = mousePos*4;
+                mousePos = Vector2.Floor(mousePos / testWorld.scalingFactor);
+                mouseBox.position = mousePos * testWorld.scalingFactor;
 
-                if (Mouse.IsButtonPressed(Mouse.Button.Left) && testWorld.GetElement((int)mousePos.x, (int)mousePos.y) is Air)
+                if (Mouse.IsButtonPressed(Mouse.Button.Left))
                 {
-                    testWorld.SetElement((int)mousePos.x, (int)mousePos.y, new Water());
+                    testWorld.SetElementImmediate((int)mousePos.x, (int)mousePos.y, new Sand());
                 }
 
                 if (Mouse.IsButtonPressed(Mouse.Button.Right) && !(testWorld.GetElement((int)mousePos.x, (int)mousePos.y) is Air))
                 {
-                    testWorld.SetElement((int)mousePos.x, (int)mousePos.y, new Air());
+                    testWorld.SetElementImmediate((int)mousePos.x, (int)mousePos.y, new Air());
                 }
 
                 testScene.Update();
+
 
                 testScene.Render(App);
 

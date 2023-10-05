@@ -53,31 +53,7 @@ namespace SandGen3Again.Scripts
             {
                 for (int y = 0; y < Size; y++)
                 {
-                    if (y < 25)
-                    {
-                        elms[x, y] = new Air();
-                    }
-
-                    if ( y <= 15)
-                    {
-                        elms[x, y] = new Water();
-                        continue;
-                    }
-
-                    //elms[x, y] = new Air();
-                    int rng = RandomGen.Next(0, 5);
-                    if (rng == 0)
-                    {
-                        elms[x, y] = new Air();
-                    }
-                    if (rng == 1)
-                    {
-                        elms[x, y] = new Sand();
-                    }
-                    if (rng > 1)
-                    {
-                        elms[x, y] = new Air();
-                    }
+                    elms[x, y] = new Air();
                 }
             }
             chunkChanged = true;
@@ -87,6 +63,17 @@ namespace SandGen3Again.Scripts
         public Element GetElement(int x, int y)
         {
             return elms[x, y];
+        }
+
+        public void FillChunk<T>() where T : Element
+        {
+            for (int x = 0; x < Size; x++)
+            {
+                for (int y = 0; y < Size; y++)
+                {
+                    elms[x, y] = (Element)Activator.CreateInstance(typeof(T));
+                }
+            }
         }
 
         public void SwapElement(int thisX, int thisY, Chunk from, int fromX, int fromY)
@@ -149,15 +136,17 @@ namespace SandGen3Again.Scripts
         // Are trying to keep this one awake.
         public bool GoingToSleep = false;
 
-        public void ProcessChanges()
+        public void ProcessChanges(int cX, int cY, World world)
         {
             int changesProcessed = 0;
+            bool hastickable = false;
             if (sleeping) { return; }
 
             for (int x = 0; x < Size; x++)
             {
                 for (int y = 0; y < Size; y++)
                 {
+                    if (elms[x, y] is ITickable) { hastickable = true; }
                     Change curChange = changes[x, y];
                     if (curChange.type == ChangeType.None) { continue; }
 
@@ -186,15 +175,32 @@ namespace SandGen3Again.Scripts
                 }
             }
 
-            if (changesProcessed == 0 && GoingToSleep)
+            if (!hastickable)
             {
-                sleeping = true;
-                GoingToSleep = false;
-            }
+                if (changesProcessed == 0 && GoingToSleep)
+                {
+                    sleeping = true;
+                    GoingToSleep = false;
+                }
 
-            if (changesProcessed == 0)
+                if (changesProcessed == 0)
+                {
+                    GoingToSleep = true;
+                }
+            } 
+            else
             {
-                GoingToSleep = true;
+                for (int x = 0; x < Size; x++)
+                {
+                    for (int y = 0; y < Size; y++)
+                    {
+                        if(elms[x, y] is ITickable)
+                        {
+                            ITickable tickable = (ITickable)elms[x, y];
+                            tickable.OnTick(x + (Size * cX), y + (Size * cY), world);
+                        }
+                    }
+                }
             }
         }
 
@@ -221,21 +227,10 @@ namespace SandGen3Again.Scripts
 
         Sprite spr = new Sprite();
 
+
+        public static bool DebugRender = false;
         public void Render(RenderTarget app, Vector2 pos, Vector2 scale)
         {
-            RectangleShape awakeShape = new RectangleShape(new Vector2(Size, Size));
-            awakeShape.FillColor = Color.Transparent;
-            awakeShape.Position = pos;
-            awakeShape.Scale = scale;
-            awakeShape.OutlineColor = Color.Green;
-            awakeShape.OutlineThickness = -0.5f;
-
-            if (sleeping)
-            {
-                awakeShape.OutlineColor = Color.Red;
-            }
-            awakeShape.OutlineColor -= new Color(0, 0, 0, 200);
-
             if (chunkChanged)
             {
                 UpdateTexture();
@@ -246,7 +241,22 @@ namespace SandGen3Again.Scripts
             spr.Scale = scale;
             app.Draw(spr);
 
-            app.Draw(awakeShape);
+            if (DebugRender)
+            {
+                RectangleShape awakeShape = new RectangleShape(new Vector2(Size, Size));
+                awakeShape.FillColor = Color.Transparent;
+                awakeShape.Position = pos;
+                awakeShape.Scale = scale;
+                awakeShape.OutlineColor = Color.Green;
+                awakeShape.OutlineThickness = -0.5f;
+
+                if (sleeping)
+                {
+                    awakeShape.OutlineColor = Color.Red;
+                }
+                awakeShape.OutlineColor -= new Color(0, 0, 0, 200);
+                app.Draw(awakeShape);
+            }
         }
 
     }

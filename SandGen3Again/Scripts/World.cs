@@ -6,8 +6,9 @@ namespace SandGen3Again.Scripts
 {
     public class World : Component, IRenderable
     {
+        public float scalingFactor = 1f;
         float tickTimer = 0;
-        float tickTime = 1f / 144f;
+        float tickTime = 1f / 60f;
         public int sizeX;
         public int sizeY;
         Chunk[,] chunks;
@@ -33,22 +34,28 @@ namespace SandGen3Again.Scripts
                 }
             }
 
+            for (int x = 0; x < sizeX; x++)
+            {
+                chunks[x, 0].FillChunk<Water>();
+            }
+
+            for (int x = 0; x < sizeX; x++)
+            {
+                chunks[x, sizeY-1].FillChunk<Sand>();
+            }
+
+            for (int x = 0; x < sizeX * Chunk.Size; x++)
+            {
+                for(int i = 0; i < 32; i++)
+                {
+                    SetElementImmediate(x, ((sizeY - 1) * Chunk.Size - 1) + RandomGen.Next(-32, 0), new Sand());
+                }
+            }
+
             for (int x = 0; x < sizeX * Chunk.Size; x++)
             {
                 //SetElementImmediate(x, sizeY * Chunk.Size - 1, new Stone());
             }
-        }
-
-        public void SwapElement(int fromWX, int fromWY, int toWX, int toWY)
-        {
-            AwakeIfNearEdge(fromWX, fromWY);
-            AwakeIfNearEdge(toWX, toWY);
-            if (fromWX < 0 || fromWY < 0) { return; }
-
-            Chunk from = ChunkFromWorld(fromWX, fromWY);
-            Chunk to = ChunkFromWorld(toWX, toWY);
-
-            to.SwapElement(toWX % Chunk.Size, toWY % Chunk.Size, from, fromWX % Chunk.Size, fromWY % Chunk.Size);
         }
 
         public override void Update()
@@ -62,21 +69,6 @@ namespace SandGen3Again.Scripts
             gameObject.scene.renderManager.AddToRenderQueue(this);
         }
 
-        public bool WithinWorldBounds(int worldX, int worldY)
-        {
-            if (worldX >= Chunk.Size * sizeX || worldY >= Chunk.Size * sizeY) { return false; }
-            if (worldX < 0 || worldY < 0) { return false; }
-            return true;
-        }
-
-        public bool WithinLocalBounds(int x, int y)
-        {
-            if (x >= Chunk.Size || y >= Chunk.Size) { return false; }
-            if (x < 0 || y < 0) { return false; }
-            return true;
-        }
-
-        // does the physics required for all chunks.
         public void PhysicsTick(Chunk chunk, int cx, int cy)
         {
             for (int x = 0; x < Chunk.Size; x++)
@@ -92,14 +84,39 @@ namespace SandGen3Again.Scripts
                     // LOTS of reusable code here, should prob pack into a function
                     // but the current solution works for now.
 
+
+                    if (atPos.phsType == physicsType.Liquid || atPos.phsType == physicsType.Sand) // Falling function for both liquid, sand, and rigid
+                    {
+                        if ((!loopEdges && WithinWorldBounds(wX, wY + 1)) | loopEdges == true)
+                        {
+                            Element below = GetElement(wX, wY + 1);
+                            if (below is Air)
+                            {
+                                SwapElement(wX, wY, wX, wY + 1);
+                                continue;
+                            }
+                            else
+                            {
+                                if (below.weight < atPos.weight)
+                                {
+                                    float weightDiff = atPos.weight - below.weight;
+                                    if ((float)RandomGen.Next() <= weightDiff)
+                                    {
+                                        SwapElement(wX, wY, wX, wY + 1);
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        chunk.Awake(); // this element is not settled, stay awake!
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
                     if (atPos.phsType == physicsType.Liquid)
                     {
-                        if (GetElement(wX, wY + 1) is Air && (!loopEdges && WithinWorldBounds(wX, wY + 1)) | loopEdges == true)
-                        {
-                            SwapElement(wX, wY, wX, wY + 1);
-                            continue;
-                        }
-
                         bool leftFree = GetElement(wX - 1, wY) is Air;
                         bool rightFree = GetElement(wX + 1, wY) is Air;
 
@@ -136,12 +153,6 @@ namespace SandGen3Again.Scripts
                     {
                         // hmm torn on just scrapping looped edges, but it would be wanted for some games so il keep it
                         // for now and keep doing this bool based hell.
-                        if (GetElement(wX, wY + 1) is Air && (!loopEdges && WithinWorldBounds(wX, wY + 1)) | loopEdges == true)
-                        {
-                            SwapElement(wX, wY, wX, wY + 1);
-                            continue;
-                        }
-
                         bool leftFree = GetElement(wX - 1, wY + 1) is Air && GetElement(wX - 1, wY) is Air;
                         bool rightFree = GetElement(wX + 1, wY + 1) is Air && GetElement(wX + 1, wY) is Air;
 
@@ -150,8 +161,8 @@ namespace SandGen3Again.Scripts
 
                         if (leftFree && rightFree)
                         {
-                            int coinFlip = RandomGen.Next(0, 10);
-                            if (coinFlip > 5)
+                            int coinFlip = RandomGen.Next(0, 2);
+                            if (coinFlip == 1)
                             {
                                 SwapElement(wX, wY, wX - 1, wY + 1);
                                 continue;
@@ -178,6 +189,42 @@ namespace SandGen3Again.Scripts
             }
         }
 
+        public void WorldTick()
+        {
+            for (int x = 0; x < sizeX; x++)
+            {
+                for (int y = 0; y < sizeY; y++)
+                {
+                    chunks[x, y].ProcessChanges(x, y, this);
+                }
+            }
+
+            for (int x = 0; x < sizeX; x++)
+            {
+                for (int y = 0; y < sizeY; y++)
+                {
+                    if (!chunks[x, y].sleeping)
+                    {
+                        PhysicsTick(chunks[x, y], x, y);
+                    }
+                }
+            }
+        }
+
+        public bool WithinWorldBounds(int worldX, int worldY)
+        {
+            if (worldX >= Chunk.Size * sizeX || worldY >= Chunk.Size * sizeY) { return false; }
+            if (worldX < 0 || worldY < 0) { return false; }
+            return true;
+        }
+
+        public bool WithinLocalBounds(int x, int y)
+        {
+            if (x >= Chunk.Size || y >= Chunk.Size) { return false; }
+            if (x < 0 || y < 0) { return false; }
+            return true;
+        }
+
         public Chunk ChunkFromWorld(int worldX, int worldY)
         {
             return chunks[Math.Abs((int)MathF.Floor(worldX / Chunk.Size) % sizeX), Math.Abs((int)MathF.Floor(worldY / Chunk.Size) % sizeY)];
@@ -188,6 +235,53 @@ namespace SandGen3Again.Scripts
             Chunk atPos = ChunkFromWorld(worldX, worldY);
             Element elm = atPos.elms[Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size)];
             return elm;
+        }
+
+        /// <summary>
+        /// Requests to swap an element from a position, to a position
+        /// <para/>
+        /// if there is already a request to swap, it will flip a coin to decide if it should swap.
+        /// </summary>
+        public void SwapElement(int fromWX, int fromWY, int toWX, int toWY)
+        {
+            AwakeIfNearEdge(fromWX, fromWY);
+            AwakeIfNearEdge(toWX, toWY);
+            if (fromWX < 0 || fromWY < 0) { return; }
+
+            Chunk from = ChunkFromWorld(fromWX, fromWY);
+            Chunk to = ChunkFromWorld(toWX, toWY);
+
+            to.SwapElement(toWX % Chunk.Size, toWY % Chunk.Size, from, fromWX % Chunk.Size, fromWY % Chunk.Size);
+        }
+
+        /// <summary>
+        /// Requests to set an element at a position, if there is already a request to move there it will flip a coin to decide if it should replace it.
+        /// </summary>
+        public void SetElement(int worldX, int worldY, Element elm)
+        {
+            AwakeIfNearEdge(worldX, worldY);
+            Chunk atPos = ChunkFromWorld(worldX, worldY);
+            atPos.SetElement(Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size), elm);
+        }
+
+        /// <summary>
+        /// Skips requesting a change and forces an element to a position.
+        /// <para></para>
+        /// If you dont know what that means/does, dont use this and use <see cref="SetElement(int, int, Element)"/> instead
+        /// </summary>
+        public void SetElementImmediate(int worldX, int worldY, Element elm)
+        {
+            AwakeIfNearEdge(worldX, worldY);
+            Chunk atPos = ChunkFromWorld(worldX, worldY);
+            atPos.Awake();
+            atPos.elms[Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size)] = elm;
+        }
+
+        public void RemoveElement(int worldX, int worldY)
+        {
+            AwakeIfNearEdge(worldX, worldY);
+            Chunk atPos = ChunkFromWorld(worldX, worldY);
+            atPos.RemoveElement(Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size));
         }
 
         public void AwakeIfNearEdge(int worldX, int worldY)
@@ -213,61 +307,13 @@ namespace SandGen3Again.Scripts
             }
         }
 
-        // Requests to set an element at a position, if there is already a request to move there it will flip a coin to decide if it should replace it.
-        public void SetElement(int worldX, int worldY, Element elm)
-        {
-            AwakeIfNearEdge(worldX, worldY);
-            Chunk atPos = ChunkFromWorld(worldX, worldY);
-            atPos.SetElement(Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size), elm);
-
-            // Stuff
-        }
-
-        public void SetElementImmediate(int worldX, int worldY, Element elm)
-        {
-            AwakeIfNearEdge(worldX, worldY);
-            Chunk atPos = ChunkFromWorld(worldX, worldY);
-            atPos.Awake();
-            atPos.elms[Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size)] = elm;
-        }
-
-        public void RemoveElement(int worldX, int worldY)
-        {
-            AwakeIfNearEdge(worldX, worldY);
-            Chunk atPos = ChunkFromWorld(worldX, worldY);
-            atPos.RemoveElement(Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size));
-        }
-
-        public void WorldTick()
-        {
-
-            for (int x = 0; x < sizeX; x++)
-            {
-                for (int y = 0; y < sizeY; y++)
-                {
-                    chunks[x, y].ProcessChanges();
-                }
-            }
-
-            for (int x = 0; x < sizeX; x++)
-            {
-                for (int y = 0; y < sizeY; y++)
-                {
-                    if (!chunks[x, y].sleeping)
-                    {
-                        PhysicsTick(chunks[x, y], x, y);
-                    }
-                }
-            }
-        }
-
         public void Draw(RenderTarget rt)
         {
             for (int x = 0; x < sizeX; x++)
             {
                 for (int y = 0; y < sizeY; y++)
                 {
-                    chunks[x, y].Render(rt, new Vector2(x * Chunk.Size, y * Chunk.Size) * 4, new Vector2(4f, 4f));
+                    chunks[x, y].Render(rt, new Vector2(x * Chunk.Size, y * Chunk.Size) * scalingFactor, new Vector2(scalingFactor, scalingFactor));
                 }
             }
         }
