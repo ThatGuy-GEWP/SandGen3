@@ -20,6 +20,8 @@ namespace SandGen3Again.Elements
 
         public abstract Color Color { get; set; }
 
+        public abstract float weight { get; set; }
+
         public physicsType phsType { get; set; } = physicsType.None;
 
 

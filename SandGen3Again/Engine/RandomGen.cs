@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace SFML_Game_Engine
 {
     /// <summary>
-    /// Thread safe random, stolen shamelessly from <seealso href="https://devblogs.microsoft.com/pfxteam/getting-random-numbers-in-a-thread-safe-way/">this</seealso>
+    /// Thread safe random, stolen shamelessly from <seealso href="https://devblogs.microsoft.com/pfxteam/getting-random-numbers-in-a-thread-safe-way/">here</seealso>
     /// </summary>
     internal static class RandomGen
     {

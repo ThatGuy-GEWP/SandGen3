@@ -1,10 +1,5 @@
-﻿using SFML.Graphics;
-using SFML_Game_Engine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SandGen3Again.Scripts;
+using SFML.Graphics;
 
 namespace SandGen3Again.Elements
 {
@@ -14,10 +9,14 @@ namespace SandGen3Again.Elements
 
         public override Color Color { get; set; } = Color.Yellow;
 
+        public override float weight { get; set; } = 1.2f;
+
+        static ColorPalette colors = new ColorPalette(0xFEEF5AFF, 0xDCC243FF, 0xCBAB38FF);
+
         public Sand()
         {
             phsType = physicsType.Sand;
-            Color += new Color();
+            Color = colors.pickRandom();
         }
     }
 }
