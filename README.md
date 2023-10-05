@@ -16,6 +16,10 @@ You can even make your own elements!
 
 ![devenv_3KKqNDkxsv](https://github.com/timmyred456/SandGen3/assets/24467262/4ac210b4-f540-45fe-91ab-799566f2d784)
 
+And you can add custom logic!
+
+![devenv_O57lsmm5Z7](https://github.com/timmyred456/SandGen3/assets/24467262/251dee93-ab98-45e8-8a5c-16335bea88f9)
+
 
 I mostly only push changes when they are done, or before i tear them down and make new ones. so at all times you *should* be able to
 compile and run the master branch.
