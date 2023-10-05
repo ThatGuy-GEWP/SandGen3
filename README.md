@@ -9,10 +9,16 @@ the plan currently is for this to be the base of a flexible game engine,
 that i can use to make an idea i have had on the backburner for years now.
 
 ### Is it functional?
-Yes! as of writing im just getting started, but you can mess around, and script your own elements in relatively few steps
+Yes!
+![SandGen3Again_bzbvti7d4h](https://github.com/timmyred456/SandGen3/assets/24467262/ac56ffe1-2688-44d0-8d93-6c6894801efe)
+
+You can even make your own elements!
+
+![devenv_3KKqNDkxsv](https://github.com/timmyred456/SandGen3/assets/24467262/4ac210b4-f540-45fe-91ab-799566f2d784)
+
+
 I mostly only push changes when they are done, or before i tear them down and make new ones. so at all times you *should* be able to
 compile and run the master branch.
-![SandGen3Again_CdqvLZZ54z](https://github.com/timmyred456/SandGen3/assets/24467262/ee703414-75fe-4a5f-aab3-2e5c8dcd45f2)
 
 ### How do i do the whole compile/running part?
 There is probably a better way, but just opening with Visual Studio works for me
