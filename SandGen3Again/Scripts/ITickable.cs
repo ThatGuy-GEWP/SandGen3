@@ -9,5 +9,7 @@
     public interface ITickable
     {
         public abstract void OnTick(int worldX, int worldY, World world);
+
+        public bool CanChunkSleep { get; set; }
     }
 }

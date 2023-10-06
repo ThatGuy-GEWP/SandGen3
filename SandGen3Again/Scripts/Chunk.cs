@@ -182,7 +182,11 @@ namespace SandGen3Again.Scripts
             {
                 for (int y = 0; y < Size; y++)
                 {
-                    if (elms[x, y] is ITickable) { hastickable = true; } // oh god we have a tickable, stay awake!
+                    if (elms[x, y] is ITickable)
+                    {
+                        hastickable = true;
+                        if (((ITickable)elms[x, y]).CanChunkSleep == false) { Awake(); }
+                    }
                     Change curChange = changes[x, y];
                     if (curChange.type == ChangeType.None) { continue; }
 
@@ -194,7 +198,7 @@ namespace SandGen3Again.Scripts
                     if (curChange.type == ChangeType.Swap)
                     {
                         Element from = curChange.fromChunk.GetElement(curChange.lx, curChange.ly);
-                        if(from.GetHashCode() != curChange.authorHash) { changes[x, y].Recycle(); continue; }
+                        if (from.GetHashCode() != curChange.authorHash) { changes[x, y].Recycle(); continue; }
                         Element to = elms[x, y];
 
                         elms[x, y] = from;
@@ -212,32 +216,30 @@ namespace SandGen3Again.Scripts
                 }
             }
 
-            if (!hastickable)
-            {
-                if (changesProcessed == 0 && GoingToSleep)
-                {
-                    sleeping = true;
-                    GoingToSleep = false;
-                }
-
-                if (changesProcessed == 0)
-                {
-                    GoingToSleep = true;
-                }
-            } 
-            else
+            if (hastickable)
             {
                 for (int x = 0; x < Size; x++)
                 {
                     for (int y = 0; y < Size; y++)
                     {
-                        if(elms[x, y] is ITickable)
+                        if (elms[x, y] is ITickable)
                         {
                             ITickable tickable = (ITickable)elms[x, y];
                             tickable.OnTick(x + (Size * cX), y + (Size * cY), world);
                         }
                     }
                 }
+            }
+
+            if (changesProcessed == 0 && GoingToSleep)
+            {
+                sleeping = true;
+                GoingToSleep = false;
+            }
+
+            if (changesProcessed == 0)
+            {
+                GoingToSleep = true;
             }
         }
 

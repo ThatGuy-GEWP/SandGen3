@@ -9,7 +9,7 @@ namespace SandGen3Again.Scripts
         public float scalingFactor = 1f;
         public bool useReactions = true;
         float tickTimer = 0;
-        float tickTime = 1f / 60f;
+        float tickTime = 1f / 60f; // tickrate, so 1 / 60 is 60 ticks a second.
         public int sizeX;
         public int sizeY;
         Chunk[,] chunks;
