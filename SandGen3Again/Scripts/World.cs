@@ -7,6 +7,7 @@ namespace SandGen3Again.Scripts
     public class World : Component, IRenderable
     {
         public float scalingFactor = 1f;
+        public bool useReactions = true;
         float tickTimer = 0;
         float tickTime = 1f / 60f;
         public int sizeX;
@@ -83,7 +84,6 @@ namespace SandGen3Again.Scripts
 
                     // LOTS of reusable code here, should prob pack into a function
                     // but the current solution works for now.
-
 
                     if (atPos.phsType == physicsType.Liquid || atPos.phsType == physicsType.Sand) // Falling function for both liquid, sand, and rigid
                     {
@@ -187,6 +187,84 @@ namespace SandGen3Again.Scripts
                     }
                 }
             }
+            if (useReactions == false) { return; }
+            for (int x = 0; x < Chunk.Size; x++)
+            {
+                for (int y = 0; y < Chunk.Size; y++)
+                {
+                    int wX = x + Chunk.Size * cx;
+                    int wY = y + Chunk.Size * cy;
+                    Element atPos = GetElement(wX, wY);
+                    if (!(atPos is IReaction)) { continue; }
+
+                    IReaction reaction = (IReaction)atPos;
+
+                    if (reaction.ReactionChance < 100.0f)
+                    {
+                        float rng = RandomGen.Next() * 100;
+                        if(rng >= reaction.ReactionChance)
+                        {
+                            chunk.Awake(); // Reaction can happen here still, stay awake!
+                            continue;
+                        }
+                    }
+
+                    // Not really readable but performance > readability
+                    Element Above = GetElement(wX, wY - 1);
+                    if (Above.GetType() == reaction.With && !reaction.NeedsSurrouned)
+                    {
+                        if (!reaction.KeepReactive) { RemoveElement(wX, wY - 1); }
+                        SetElement(wX, wY, (Element)Activator.CreateInstance(reaction.To));
+                        continue;
+                    }
+
+                    Element Left = GetElement(wX - 1, wY);
+                    if (Left.GetType() == reaction.With && !reaction.NeedsSurrouned)
+                    {
+                        if (!reaction.KeepReactive) { RemoveElement(wX - 1, wY); }
+                        SetElement(wX, wY, (Element)Activator.CreateInstance(reaction.To));
+                        continue;
+                    }
+
+                    Element Right = GetElement(wX + 1, wY);
+                    if (Right.GetType() == reaction.With && !reaction.NeedsSurrouned)
+                    {
+                        if (!reaction.KeepReactive) { RemoveElement(wX, wY + 1); }
+                        SetElement(wX, wY, (Element)Activator.CreateInstance(reaction.To));
+                        continue;
+                    }
+
+                    Element Below = GetElement(wX, wY + 1);
+                    if (Below.GetType() == reaction.With && !reaction.NeedsSurrouned)
+                    {
+                        if (!reaction.KeepReactive) { RemoveElement(wX, wY + 1); }
+                        SetElement(wX, wY, (Element)Activator.CreateInstance(reaction.To));
+                        continue;
+                    }
+
+                    if (reaction.NeedsSurrouned)
+                    {
+                        if(
+                            Above.GetType() == reaction.With && 
+                            Left.GetType() == reaction.With && 
+                            Right.GetType() == reaction.With && 
+                            Below.GetType() == reaction.With
+                            )
+                        {
+                            if (!reaction.KeepReactive)
+                            {
+                                RemoveElementImmediate(wX, wY + 1);
+                                RemoveElementImmediate(wX, wY - 1);
+                                RemoveElementImmediate(wX + 1, wY);
+                                RemoveElementImmediate(wX - 1, wY);
+                            }
+                            SetElement(wX, wY, (Element)Activator.CreateInstance(reaction.To));
+                        }
+                    }
+
+
+                }
+            }
         }
 
         public void WorldTick()
@@ -267,7 +345,7 @@ namespace SandGen3Again.Scripts
         /// <summary>
         /// Skips requesting a change and forces an element to a position.
         /// <para></para>
-        /// If you dont know what that means/does, dont use this and use <see cref="SetElement(int, int, Element)"/> instead
+        /// If you dont know what that means/does, dont use this and use <see cref="World.SetElement(int, int, Type)"/> instead
         /// </summary>
         public void SetElementImmediate(int worldX, int worldY, Element elm)
         {
@@ -275,6 +353,7 @@ namespace SandGen3Again.Scripts
             Chunk atPos = ChunkFromWorld(worldX, worldY);
             atPos.Awake();
             atPos.elms[Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size)] = elm;
+            atPos.changes[Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size)].Recycle();
         }
 
         public void RemoveElement(int worldX, int worldY)
@@ -282,6 +361,15 @@ namespace SandGen3Again.Scripts
             AwakeIfNearEdge(worldX, worldY);
             Chunk atPos = ChunkFromWorld(worldX, worldY);
             atPos.RemoveElement(Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size));
+        }
+
+        public void RemoveElementImmediate(int worldX, int worldY)
+        {
+            AwakeIfNearEdge(worldX, worldY);
+            Chunk atPos = ChunkFromWorld(worldX, worldY);
+            atPos.Awake();
+            atPos.elms[Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size)] = new Air();
+            atPos.changes[Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size)].Recycle();
         }
 
         public void AwakeIfNearEdge(int worldX, int worldY)

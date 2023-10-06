@@ -47,6 +47,8 @@ namespace SandGen3Again.Scripts
 
         bool chunkChanged = false;
 
+        public static bool DebugRender = false;
+
         public Chunk()
         {
             for (int x = 0; x < Size; x++)
@@ -170,6 +172,7 @@ namespace SandGen3Again.Scripts
                         elms[x, y] = new Air();
                     }
 
+                    chunkChanged = true;
                     changesProcessed++;
                     changes[x, y].Recycle();
                 }
@@ -227,12 +230,11 @@ namespace SandGen3Again.Scripts
 
         Sprite spr = new Sprite();
 
-
-        public static bool DebugRender = false;
         public void Render(RenderTarget app, Vector2 pos, Vector2 scale)
         {
             if (chunkChanged)
             {
+                chunkChanged = false;
                 UpdateTexture();
             }
 

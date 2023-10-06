@@ -41,9 +41,9 @@ namespace SandGen3Again
                 mousePos = Vector2.Floor(mousePos / testWorld.scalingFactor);
                 mouseBox.position = mousePos * testWorld.scalingFactor;
 
-                if (Mouse.IsButtonPressed(Mouse.Button.Left))
+                if (Mouse.IsButtonPressed(Mouse.Button.Left) && testWorld.GetElement((int)mousePos.x, (int)mousePos.y) is Air)
                 {
-                    testWorld.SetElementImmediate((int)mousePos.x, (int)mousePos.y, new Sand());
+                    testWorld.SetElementImmediate((int)mousePos.x, (int)mousePos.y, new Dust());
                 }
 
                 if (Mouse.IsButtonPressed(Mouse.Button.Right) && !(testWorld.GetElement((int)mousePos.x, (int)mousePos.y) is Air))
