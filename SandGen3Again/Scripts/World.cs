@@ -95,7 +95,7 @@ namespace SandGen3Again.Scripts
                                 SwapElement(wX, wY, wX, wY + 1);
                                 continue;
                             }
-                            else
+                            else if (below.phsType != physicsType.None)
                             {
                                 if (below.weight < atPos.weight)
                                 {
@@ -401,7 +401,7 @@ namespace SandGen3Again.Scripts
             {
                 for (int y = 0; y < sizeY; y++)
                 {
-                    chunks[x, y].Render(rt, new Vector2(x * Chunk.Size, y * Chunk.Size) * scalingFactor, new Vector2(scalingFactor, scalingFactor));
+                    chunks[x, y].Render(rt, (new Vector2(x * Chunk.Size, y * Chunk.Size) * scalingFactor) + gameObject.position, new Vector2(scalingFactor, scalingFactor));
                 }
             }
         }
