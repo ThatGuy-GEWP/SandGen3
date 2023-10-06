@@ -12,13 +12,20 @@ that i can use to make an idea i have had on the backburner for years now.
 Yes!
 ![SandGen3Again_bzbvti7d4h](https://github.com/timmyred456/SandGen3/assets/24467262/ac56ffe1-2688-44d0-8d93-6c6894801efe)
 
-You can even make your own elements!
+You can make your own elements!
 
 ![devenv_3KKqNDkxsv](https://github.com/timmyred456/SandGen3/assets/24467262/4ac210b4-f540-45fe-91ab-799566f2d784)
 
-And add custom logic!
+Add your own reactions!
 
-![devenv_O57lsmm5Z7](https://github.com/timmyred456/SandGen3/assets/24467262/251dee93-ab98-45e8-8a5c-16335bea88f9)
+![devenv_NsT9FkBjOO](https://github.com/timmyred456/SandGen3/assets/24467262/4af1bd4f-db52-4779-8352-0a81c099eead)
+![The One](https://github.com/timmyred456/SandGen3/assets/24467262/2dcb91d5-ab1a-47f4-bb8f-6ae28399f20a)
+
+
+Add custom logic!
+
+![devenv_2l81ufyl79](https://github.com/timmyred456/SandGen3/assets/24467262/d8179c78-5a7a-4d75-adaf-926cc9ae5645)
+
 
 
 I mostly only push changes when they are done, or before i tear them down and make new ones. so at all times you *should* be able to
