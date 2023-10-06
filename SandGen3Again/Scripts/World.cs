@@ -85,7 +85,7 @@ namespace SandGen3Again.Scripts
                     // LOTS of reusable code here, should prob pack into a function
                     // but the current solution works for now.
 
-                    if (atPos.phsType == physicsType.Liquid || atPos.phsType == physicsType.Sand) // Falling function for both liquid, sand, and rigid
+                    if (atPos.phsType != physicsType.None) // Falling function for both liquid, sand, and rigid
                     {
                         if ((!loopEdges && WithinWorldBounds(wX, wY + 1)) | loopEdges == true)
                         {
@@ -289,6 +289,12 @@ namespace SandGen3Again.Scripts
             }
         }
 
+        /// <summary>
+        /// Checks if X and Y are within the bounds of the world
+        /// </summary>
+        /// <param name="worldX"></param>
+        /// <param name="worldY"></param>
+        /// <returns></returns>
         public bool WithinWorldBounds(int worldX, int worldY)
         {
             if (worldX >= Chunk.Size * sizeX || worldY >= Chunk.Size * sizeY) { return false; }
@@ -296,6 +302,12 @@ namespace SandGen3Again.Scripts
             return true;
         }
 
+        /// <summary>
+        /// Checks if X and Y are within the bounds of <see cref="Chunk.Size"/>
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public bool WithinLocalBounds(int x, int y)
         {
             if (x >= Chunk.Size || y >= Chunk.Size) { return false; }
@@ -303,11 +315,23 @@ namespace SandGen3Again.Scripts
             return true;
         }
 
+        /// <summary>
+        /// Gets a chunk from world coordinates.
+        /// </summary>
+        /// <param name="worldX"></param>
+        /// <param name="worldY"></param>
+        /// <returns></returns>
         public Chunk ChunkFromWorld(int worldX, int worldY)
         {
             return chunks[Math.Abs((int)MathF.Floor(worldX / Chunk.Size) % sizeX), Math.Abs((int)MathF.Floor(worldY / Chunk.Size) % sizeY)];
         }
 
+        /// <summary>
+        /// Gets and element from world coordinates.
+        /// </summary>
+        /// <param name="worldX"></param>
+        /// <param name="worldY"></param>
+        /// <returns></returns>
         public Element GetElement(int worldX, int worldY)
         {
             Chunk atPos = ChunkFromWorld(worldX, worldY);
@@ -352,10 +376,14 @@ namespace SandGen3Again.Scripts
             AwakeIfNearEdge(worldX, worldY);
             Chunk atPos = ChunkFromWorld(worldX, worldY);
             atPos.Awake();
-            atPos.elms[Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size)] = elm;
-            atPos.changes[Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size)].Recycle();
+            atPos.SetElementNow(Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size), elm);
         }
 
+        /// <summary>
+        /// Requests to destroy an element at a position.
+        /// </summary>
+        /// <param name="worldX"></param>
+        /// <param name="worldY"></param>
         public void RemoveElement(int worldX, int worldY)
         {
             AwakeIfNearEdge(worldX, worldY);
@@ -363,15 +391,26 @@ namespace SandGen3Again.Scripts
             atPos.RemoveElement(Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size));
         }
 
+        /// <summary>
+        /// Skips requesting and destroys an element at a position when called.
+        /// <para></para>
+        /// If you dont know what the request system does, dont use this and use <see cref="World.RemoveElement(int, int, Type)"/> instead
+        /// </summary>
+        /// <param name="worldX"></param>
+        /// <param name="worldY"></param>
         public void RemoveElementImmediate(int worldX, int worldY)
         {
             AwakeIfNearEdge(worldX, worldY);
             Chunk atPos = ChunkFromWorld(worldX, worldY);
             atPos.Awake();
-            atPos.elms[Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size)] = new Air();
-            atPos.changes[Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size)].Recycle();
+            atPos.SetElementNow(Math.Abs(worldX % Chunk.Size), Math.Abs(worldY % Chunk.Size), new Air());
         }
 
+        /// <summary>
+        /// Awakes the chunks near the given world coordinates
+        /// </summary>
+        /// <param name="worldX"></param>
+        /// <param name="worldY"></param>
         public void AwakeIfNearEdge(int worldX, int worldY)
         {
             int lX = worldX % Chunk.Size;

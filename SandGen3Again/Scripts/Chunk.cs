@@ -12,8 +12,11 @@ namespace SandGen3Again.Scripts
         Swap
     }
 
-    public struct Change
+    public struct Change // used to record changes, then apply them.
     {
+        // To be honest i should not be using a struct here
+        // this is not fixed size, you just know its all on the heap
+        // but if it aint broke, dont fix it!
         public ChangeType type;
         public int lx;
         public int ly;
@@ -24,7 +27,7 @@ namespace SandGen3Again.Scripts
         // for use with "Swap"
         public Chunk fromChunk;
 
-        public void Recycle()
+        public void Recycle() // Making new ones increased memory usage by ~100mb, this is much better.
         {
             fromChunk = null;
             type = ChangeType.None;
@@ -43,10 +46,13 @@ namespace SandGen3Again.Scripts
         public Change[,] changes = new Change[Size, Size];
         public Texture chunkTexture = new Texture(Size, Size);
 
-        public bool sleeping = false;
+        public bool sleeping { get; private set; } = false;
 
         bool chunkChanged = false;
 
+        /// <summary>
+        /// If true, chunks will have a border around them showing their sleeping state.
+        /// </summary>
         public static bool DebugRender = false;
 
         public Chunk()
@@ -67,6 +73,10 @@ namespace SandGen3Again.Scripts
             return elms[x, y];
         }
 
+        /// <summary>
+        /// Fills a chunk with the type <typeparamref name="T"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         public void FillChunk<T>() where T : Element
         {
             for (int x = 0; x < Size; x++)
@@ -78,8 +88,12 @@ namespace SandGen3Again.Scripts
             }
         }
 
+        /// <summary>
+        /// Swaps an element with another element.
+        /// </summary>
         public void SwapElement(int thisX, int thisY, Chunk from, int fromX, int fromY)
         {
+            // This is a mess, but a working mess!
             if (sleeping) { Awake(); }
             if (changes[thisX, thisY].type == ChangeType.Swap)
             {
@@ -100,12 +114,23 @@ namespace SandGen3Again.Scripts
             changes[thisX, thisY].ly = fromY;
         }
 
+        /// <summary>
+        /// Queues the removal of an element.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
         public void RemoveElement(int x, int y)
         {
             if (sleeping) { Awake(); }
             changes[x, y] = new Change { lx = x, ly = y, type = ChangeType.Remove };
         }
 
+        /// <summary>
+        /// Queues placing an element.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="elm"></param>
         public void SetElement(int x, int y, Element elm)
         {
             if (sleeping) { Awake(); }
@@ -120,12 +145,21 @@ namespace SandGen3Again.Scripts
             changes[x, y] = new Change { elm = elm, lx = x, ly = y, type = ChangeType.Set };
         }
 
+        /// <summary>
+        /// Discards changes at a position, and just sets an element.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="elm"></param>
         public void SetElementNow(int x, int y, Element elm)
         {
             changes[x, y].Recycle();
             elms[x, y] = elm;
         }
 
+        /// <summary>
+        /// Awakes a chunk.
+        /// </summary>
         public void Awake()
         {
             chunkChanged = true;
@@ -148,7 +182,7 @@ namespace SandGen3Again.Scripts
             {
                 for (int y = 0; y < Size; y++)
                 {
-                    if (elms[x, y] is ITickable) { hastickable = true; }
+                    if (elms[x, y] is ITickable) { hastickable = true; } // oh god we have a tickable, stay awake!
                     Change curChange = changes[x, y];
                     if (curChange.type == ChangeType.None) { continue; }
 
@@ -209,6 +243,11 @@ namespace SandGen3Again.Scripts
 
         public void UpdateTexture()
         {
+            // For some reason, instead of using a byte[,] array to update a texture,
+            // SFML likes just a flat byte[] array.
+            // Im guessing its because the texture is on the GPU and somthing somthing openGL,
+            // but it would still be nice to use a 2d array instead.
+
             byte[] frameColor = new byte[Size * Size * 4];
 
             int offset = 0;
@@ -232,7 +271,7 @@ namespace SandGen3Again.Scripts
 
         public void Render(RenderTarget app, Vector2 pos, Vector2 scale)
         {
-            if (chunkChanged)
+            if (chunkChanged) // prevent updating the texture if nothing has changed.
             {
                 chunkChanged = false;
                 UpdateTexture();
@@ -243,7 +282,7 @@ namespace SandGen3Again.Scripts
             spr.Scale = scale;
             app.Draw(spr);
 
-            if (DebugRender)
+            if (DebugRender) // this mess just draws the border of the chunk when DebugRender is true.
             {
                 RectangleShape awakeShape = new RectangleShape(new Vector2(Size, Size));
                 awakeShape.FillColor = Color.Transparent;

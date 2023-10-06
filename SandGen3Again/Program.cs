@@ -43,7 +43,10 @@ namespace SandGen3Again
 
                 if (Mouse.IsButtonPressed(Mouse.Button.Left) && testWorld.GetElement((int)mousePos.x, (int)mousePos.y) is Air)
                 {
-                    testWorld.SetElementImmediate((int)mousePos.x, (int)mousePos.y, new Dust());
+                    testWorld.SetElementImmediate(
+                        (int)mousePos.x, (int)mousePos.y, 
+                        new Dust() // Change to what element you want created on left click.
+                        ); 
                 }
 
                 if (Mouse.IsButtonPressed(Mouse.Button.Right) && !(testWorld.GetElement((int)mousePos.x, (int)mousePos.y) is Air))
