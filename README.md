@@ -7,8 +7,8 @@
   one of the main goals of this project was for high performance with low complexity.
 
 ### This ISNT:
-A massive scale sand game, although performance is not too bad on large worlds, the point of
-this engine is for a modular base to build games ontop of (as it already has a custom ECS build with sfml packaged with it)
+A massive scale sand engine, although performance is not too bad on large worlds, the point of
+this engine is for a modular base to build games ontop of (as it already has a custom ECS built with sfml packaged with it)
 
 As the name says, this is not the first, or last Sandgen.
 
