@@ -5,6 +5,7 @@
 ### This is:
   A falling sand game engine, that allows for easy implmentation of custom element logic and reactions,
   one of the main goals of this project was for high performance with low complexity.
+  Mostly this is for internal use, however you can mess around with it if you like!
 
 ### This ISNT:
 A massive scale sand engine, although performance is not too bad on large worlds, the point of
