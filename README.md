@@ -1,6 +1,3 @@
-# SandGen3
-
-
 ## What is this?
 ### This is:
   A falling sand game engine, that allows for easy implmentation of custom element logic and reactions,
